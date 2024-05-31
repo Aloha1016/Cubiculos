@@ -25,53 +25,88 @@
                   <section class="d-flex flex-column justify-content-between align-items-start mb-2">
                     <h5 class="card-title">{{ reserva.r_username }}</h5>
                     <div class="d-flex flex-column flex-row flex-2xl-row center align-items-start mb-2 gap-2">
-                      <!-- <BadgeStatus :status="s" /> -->
                       <BadgeReserva :capacity="reserva.r_status" />
-                      
                     </div>
-                    <!-- <p class="card-text mb-2">{{ reserva.r_cubiculo }}</p> -->
                   </section>
 
                   <div class="card mb-3">
                     <div class="card-body">
-                      <p class="user-title" >Fecha de la Reserva: {{ reserva.r_fecha }}</p>
-                      <!-- <p class="user-title" v-else>Usuario: Ninguno</p> -->
-
-                      <p class="card-text" >
-                        <strong>Hora de Inicio: <br /></strong> {{ reserva.r_hora_inicio}}
-                      </p>
-                      <p class="card-text">
-                        <strong>Hora de Fin:<br /></strong> {{ reserva.r_hora_fin }}
-                      </p>
+                      <p class="user-title">Fecha de la Reserva: {{ reserva.r_fecha }}</p>
+                      <p class="card-text"><strong>Hora de Inicio: <br /></strong> {{ reserva.r_hora_inicio }}</p>
+                      <p class="card-text"><strong>Hora de Fin:<br /></strong> {{ reserva.r_hora_fin }}</p>
                     </div>
                   </div>
 
-                  <!-- <button
-                    type="button"
-                    class="btn btn-sm"
-                    :class="cubiculo.user ? 'btn-danger' : 'btn-outline-success'"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createReservationModal"
-                    :disabled="cubiculo.user"
-                    @click="abrirModalReserva(cubiculo)">
-                      
-                  </button> -->
                   <button 
                     type="button"
-                    class="btn-outline-primary"
-                    >
-                  Check-In
+                    class="btn btn-outline-primary"
+                    data-bs-toggle="modal"
+                    :data-bs-target="'#checkInModal' + reserva.id"
+                    @click="setCurrentReserva(reserva)">
+                    Check-In
                   </button>
                   <button 
                     type="button"
-                    class="btn-secondary"
-                    >
-                  Check-Out
+                    class="btn btn-secondary"
+                    data-bs-toggle="modal"
+                    :data-bs-target="'#checkOutModal' + reserva.id"
+                    @click="setCurrentReserva(reserva)">
+                    Check-Out
                   </button>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Modal para Check-In -->
+          <div v-for="reserva in reservasActivas" :key="'checkInModal' + reserva.id" class="modal fade" :id="'checkInModal' + reserva.id" tabindex="-1" aria-labelledby="checkInModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title text-white" id="checkInModalLabel">Check-In</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-black">
+                  <p>Fecha: {{ reserva.r_fecha }}</p>
+                  <p>Hora: {{ reserva.r_hora_inicio }}</p>
+                  <button type="button" class="btn btn-primary" @click="checkIn(reserva)" data-bs-dismiss="modal">Check-In</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal para Check-Out -->
+          <div v-for="reserva in reservasActivas" :key="'checkOutModal' + reserva.id" class="modal fade" :id="'checkOutModal' + reserva.id" tabindex="-1" aria-labelledby="checkOutModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title text-white" id="checkOutModalLabel">Check-Out</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-black">
+                  <p>Realizando Check-Out de la reserva</p>
+                  <div class="mb-3">
+                    <label for="achievement" class="form-label">Agregar Logro</label>
+                    <select id="achievement" class="form-select" v-model="selectedAchievement">
+                      <option v-for="logro in logros" :key="logro.id" :value="logro.id">
+                        {{ logro.l_nombre }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="sanction" class="form-label">Agregar Sanción</label>
+                    <select id="sanction" class="form-select" v-model="selectedSanction">
+                      <option v-for="sancion in sanciones" :key="sancion.id" :value="sancion.id">
+                        {{ sancion.s_nombre }}
+                      </option>
+                    </select>
+                  </div>
+                  <button type="button" class="btn btn-primary" @click="checkOut(reserva)" data-bs-dismiss="modal">Check-Out</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Modal para Reservar Cubículo -->
           <div
             class="modal fade"
@@ -155,37 +190,13 @@
 </template>
 
 <script>
-// import BadgeStatus from "../../components/BadgeStatus.vue";
-//import BadgeCapacity from "../../components/BadgeCapacity.vue";
-import BadgeReserva from  "../../components/BadgeReservaStatus.vue"
+import BadgeReserva from "../../components/BadgeReservaStatus.vue"
 import { reactive, onMounted, computed, toRefs } from "vue";
-//
-
-import { collection, addDoc, onSnapshot, doc, updateDoc, query,getDocs,where  } from "firebase/firestore";
-import { db } from "../../firebaseConfig"; // Asegúrate de que la ruta sea correcta
-//var reservas = ref ([])
-
-
-
-
-
-
-      // querySnapshot.forEach( (doc) =>
-      // {
-      //     reservas = doc.map( (doc) => ({ id: doc.id, ...doc.data() }) );
-      //     // reservas.push(doc.data());
-      // });
-
-
-//console.log(reservasrender);
-    
- 
-
+import { collection, addDoc, onSnapshot, doc, updateDoc, query, getDocs, where } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
 export default {
   components: {
-    // BadgeStatus,
-   // BadgeCapacity,
     BadgeReserva
   },
   setup() {
@@ -193,19 +204,23 @@ export default {
       cubiculoActual: null,
       cubiculos: [],
       reservas: [],
-      reservasActivas :[],
+      reservasActivas: [],
       usuario: null,
       fecha: null,
       horaInicio: null,
       horaFin: null,
       usuarios: [],
       filterStatus: "",
+      logros: [],
+      sanciones: [],
+      selectedAchievement: "",
+      selectedSanction: "",
     });
 
-    const usuariosCollection = collection(db, "users"); // Cambia 'usuarios' por el nombre de tu colección de usuarios
+    const usuariosCollection = collection(db, "users");
     const cubiculosCollection = collection(db, "cubiculos");
     const reservasCollection = collection(db, "reserva");
-    const reservasActivas  = query(reservasCollection,where ("r_status" , "==","open"));
+    const reservasActivasQuery = query(reservasCollection, where("r_status", "==", "open"));
 
     const getUser = (userId) => {
       const user = state.usuarios.find((u) => u.id === userId);
@@ -220,35 +235,31 @@ export default {
     const cargarCubiculos = () => {
       onSnapshot(cubiculosCollection, (snapshot) => {
         state.cubiculos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-       
       });
     };
 
-    const cargarReservasAct = async() => 
-    {
-
-      // db.collection("reserva")
-      // .where ("r_status" , "==","open")
-      // .get()
-      // .then((snapshot) => {
-      //   state.reservasActivas = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      // // do something with documents
-      // })
-
-
-
-      const querySnapshot  = await getDocs(reservasActivas);
-      state.reservasActivas = await querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      await console.log(state.reservasActivas)
-    }
-
-   
-  
-
+    const cargarReservasActivas = async () => {
+      const querySnapshot = await getDocs(reservasActivasQuery);
+      state.reservasActivas = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    };
 
     const cargarUsuarios = () => {
       onSnapshot(usuariosCollection, (snapshot) => {
         state.usuarios = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      });
+    };
+
+    const cargarLogros = () => {
+      const logrosCollection = collection(db, "logros");
+      onSnapshot(logrosCollection, (snapshot) => {
+        state.logros = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      });
+    };
+
+    const cargarSanciones = () => {
+      const sancionesCollection = collection(db, "sancion");
+      onSnapshot(sancionesCollection, (snapshot) => {
+        state.sanciones = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       });
     };
 
@@ -304,6 +315,51 @@ export default {
       });
     };
 
+    const checkIn = async (reserva) => {
+      try {
+        const reservaDoc = doc(db, "reserva", reserva.id);
+        await updateDoc(reservaDoc, {
+          r_status: "checked-in",
+        });
+        alert("Check-In realizado con éxito");
+        await cargarReservasActivas();
+      } catch (error) {
+        console.error("Error al realizar el check-in: ", error);
+      }
+    };
+
+    const checkOut = async (reserva) => {
+      try {
+        const reservaDoc = doc(db, "reserva", reserva.id);
+        await updateDoc(reservaDoc, {
+          r_status: "closed",
+        });
+
+        if (state.selectedAchievement) {
+          const logroDoc = doc(db, "logros", state.selectedAchievement);
+          await updateDoc(logroDoc, {
+            r_reserva: reserva.id,
+          });
+        }
+
+        if (state.selectedSanction) {
+          const sancionDoc = doc(db, "sancion", state.selectedSanction);
+          await updateDoc(sancionDoc, {
+            r_reserva: reserva.id,
+          });
+        }
+
+        alert("Check-Out realizado con éxito");
+        await cargarReservasActivas();
+      } catch (error) {
+        console.error("Error al realizar el check-out: ", error);
+      }
+    };
+
+    const setCurrentReserva = (reserva) => {
+      state.cubiculoActual = reserva;
+    };
+
     const filteredCubiculos = computed(() => {
       if (state.filterStatus === "available") {
         return state.cubiculos.filter((cubiculo) => !cubiculo.user);
@@ -318,7 +374,9 @@ export default {
       cargarCubiculos();
       cargarUsuarios();
       cargarReservas();
-      cargarReservasAct();
+      cargarReservasActivas();
+      cargarLogros();
+      cargarSanciones();
     });
 
     return {
@@ -326,9 +384,11 @@ export default {
       getCubiculoName,
       getUser,
       abrirModalReserva,
-      
       reservarCubiculo,
       filteredCubiculos,
+      checkIn,
+      checkOut,
+      setCurrentReserva,
     };
   },
 };
