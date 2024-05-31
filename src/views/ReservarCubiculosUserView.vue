@@ -1,5 +1,6 @@
 <template>
     <div class="reserva-cubiculo">
+      <img src="../assets/logo.png" alt="Cubículo" class="img-cubiculo">
       <h1>Reservar Cubículo</h1>
       <form @submit.prevent="crearReserva">
         
@@ -145,19 +146,44 @@ console.log(localStorage.getItem("username"))
   //};
 
 
-  </script>
+</script>
   
-  <style scoped>
-  .reserva-cubiculo {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  .mb-3 {
-    margin-bottom: 1rem;
-  }
-  </style>
-  
+<style scoped>
+.reserva-cubiculo {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #002f6c;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: white; /* Cambia el color del texto a blanco */
+}
+
+.img-cubiculo {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.btn-primary {
+  background-color: #e8c158;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #c69c2a;
+  color: white;
+  transform: scale(1.05);
+}
+</style>
