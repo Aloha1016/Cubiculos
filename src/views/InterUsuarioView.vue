@@ -49,26 +49,56 @@
               </div>
             </div>
           </div>
+
           <div class="fibonacci-item fibonacci3">
             <p>MI CUBÍCULO</p>
-            <div v-if="!miCubiculo">
-              <p>No tienes cubículo, puedes solicitar uno</p>
-              <router-link to="/ReservarUser">
-                <button class="btn">Solicitar cubículo</button>
-              </router-link>
+
+            <div v-if="!banedUSer">
+                  <div v-if="!miCubiculo">
+                      <p>No tienes cubículo, puedes solicitar uno</p>
+                      <router-link to="/ReservarUser">
+                        <button class="btn">Solicitar cubículo</button>
+                      </router-link>
+                </div>
+                <div v-if="miCubiculo">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                          <p>Reserva Actual</p>
+                          <p><b>Fecha :   </b> {{ reserva_date }}</p>
+                          <p><b>Hora Check-In :    </b> {{ reserva_horain }}</p>   
+                          <p><b>Hora Chek-Out :    </b>{{ reserva_horaout }}</p>
+                          <!-- <button class="btn">Cancelar Reserva</button> -->
+                        </div>
+                  </div>
+                </div>
             </div>
+            <div v-if="banedUSer">
+              <div class="card mb-4">
+                    <div class="card-body">
+                      <h3>Haz sido suspendido por 1 mes, debido a que haz acumulado más de 3 sanciones</h3>
+                    </div>
+              </div>
+            </div>
+           
           </div>
+
           <div class="fibonacci-item fibonacci2">
             <p>SANCIONES</p>
-            <div v-if="!sanciones.length">
-              <p>No tienes sanciones</p>
-            </div>
+            
+            <div class="card mb-4" v-for="sancion in sanciones" :key="sancion.id">
+                    <div class="card-body">
+                      <h3><b>{{ sancion.s_nombre }}</b></h3>
+                      <p>{{ sancion.s_descripcion }}</p>
+                    </div>
+              </div>
           </div>
           <div class="fibonacci-item fibonacci4">
             <p>LOGROS</p>
-            <div v-if="!logros.length">
-              <p>No tienes logros</p>
-            </div>
+            <div class="card mb-4">
+                    <div class="card-body">
+                      <h3></h3>
+                    </div>
+              </div>
           </div>
         </div>
       </div>
@@ -82,15 +112,23 @@
 
 <script>
 import { reactive, toRefs, computed, onMounted } from "vue";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs,where,query, getDoc,doc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { getAuth,onAuthStateChanged } from "firebase/auth";
+import { ref } from "vue";
+const auth = getAuth();
+var usuario = ref("");
+
+
+
 
 export default {
   data() {
     return {
       showMenu: false,
-      miCubiculo: null,
+      
       sanciones: [],
+      
       logros: [],
       username: localStorage.getItem('username') || 'Usuario'
     };
@@ -99,6 +137,14 @@ export default {
     const state = reactive({
       cubiculos: [],
       currentPage: 1,
+      miCubiculo: false,
+      banedUSer : false,
+      reserva : [],
+      sanciones : [],
+      reserva_date : "",
+      reserva_horain :"",
+      reserva_horaout : "",
+    
       itemsPerPage: 3
     });
 
@@ -109,12 +155,117 @@ export default {
       return state.cubiculos.slice(start, end);
     });
 
+    
+    async function getUser()
+    {
+      
+      await  onAuthStateChanged(auth,  (user) => {
+          
+          
+          if (user) {
+
+            usuario= user.uid;
+            console.log(usuario);
+            fetchReserva();
+            banUser();
+            getSanciones ();
+          //  getLogros();
+        } else {
+            console.log("No existe usuario loggeado");
+            // router.push("/");
+          }
+        });
+    }
+
+
+
+
+
+
+    const cubcollection = collection(db, "cubiculo");
+    const activeCub = query(cubcollection, where("cub_status", "==", true));
+
+
     async function fetchCubiculos() {
-      const querySnapshot = await getDocs(collection(db, "cubiculo"));
+      const querySnapshot = await getDocs(activeCub);
       querySnapshot.forEach((doc) => {
         state.cubiculos.push({ id: doc.id, ...doc.data() });
+     ///   console.log(state.cubiculos);
       });
     }
+
+
+    async function banUser ()
+    {
+      const user = collection (db,"users");
+      const user_info = query (user,where ("u_uid", "==", usuario));
+      const querySnapshot = await getDocs (user_info);
+      querySnapshot.forEach((doc)=> 
+      {
+          if(doc.data().u_sanciones >= 3)
+          {
+           state.banedUSer = !state.banedUSer 
+          }
+
+          //if (doc.data().user)
+      });
+
+    }
+    
+    async  function fetchReserva ()
+    {
+      const reserva = collection (db,"reserva");
+      const reserva_info = query(reserva,where("r_usuario", "==", usuario ),where("r_status" , "==","open"))
+
+
+      const querySnapshot = await getDocs(reserva_info)
+      querySnapshot.forEach((doc)=> 
+      {
+        if (doc.data())
+        {
+          state.miCubiculo = true;
+          state.reserva.push({ id: doc.id, ...doc.data() });
+          state.reserva_date = doc.data().r_fecha;
+          state.reserva_horain = doc.data().r_hora_inicio;
+          state.reserva_horaout = doc.data().r_hora_fin;
+          console.log(doc.data().r_fecha);
+        }
+        else
+        {
+          state.miCubiculo = false;
+        }
+
+
+         console.log(doc.data()); 
+      });
+    }
+
+    async function getSanciones ()
+    {
+      const sancionesUserCollection  = collection(db,"sancion_usuario");
+      const sancionesUSer = query(sancionesUserCollection,where("usan_userid","==",usuario))
+      const querySnapshot = await getDocs (sancionesUSer);
+
+      querySnapshot.forEach((document)=>
+      {
+        console.log(document.data().usan_sancion);
+         // const sancionesCollection = collection (db,"sancion");
+          //const sancionesget = query (sancionesCollectio,where(""))
+          getDoc(doc(db, "sancion", document.data().usan_sancion)).then(docSnap => {
+            if (docSnap.exists()) {
+              console.log("Document data:", docSnap.data());
+              state.sanciones.push({ id: docSnap.id, ...docSnap.data() });
+              console.log(state.sanciones);
+              
+            } else {
+              console.log("No such document!");
+            }
+          })
+          
+      });
+
+    }
+
 
     function nextPage() {
       if (state.currentPage < totalPages.value) {
@@ -129,7 +280,10 @@ export default {
     }
 
     onMounted(() => {
+      getUser();
       fetchCubiculos();
+     // banUser();
+     // fetchReserva();
     });
 
     return {

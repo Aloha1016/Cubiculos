@@ -35,7 +35,7 @@
   
   <script setup>
   import { getAuth,onAuthStateChanged } from "firebase/auth";
-  import { getFirestore, collection,onSnapshot,addDoc } from 'firebase/firestore';
+  import { getFirestore, collection,addDoc,query,where,getDocs, updateDoc, doc } from 'firebase/firestore';
   import { ref } from 'vue';
   import { useRouter } from "vue-router";
 
@@ -73,18 +73,32 @@
   const cubiculos = ref([]);
   const selected_cub = ref (""); 
 
-  
-  const cargarCubiculos = () => {
-  const cubiculosCollection = collection(db, "cubiculo");
-  onSnapshot(cubiculosCollection, (snapshot) => {
-    cubiculos.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    console.log (cubiculos.value)
-  });
-  };
+  const cubcollection = collection(db, "cubiculo");
+  const activeCub = query(cubcollection, where("cub_status", "==", true));
 
-  cargarCubiculos ();
+
+    async function fetchCubiculos() {
+      const querySnapshot = await getDocs(activeCub);
+      querySnapshot.forEach((doc) => {
+        cubiculos.value.push({ id: doc.id, ...doc.data() });
+        console.log(cubiculos);
+      });
+    }
+
+    fetchCubiculos ();
 
   
+  // const cargarCubiculos = () => {
+  // const cubiculosCollection = collection(db, "cubiculo");
+  // onSnapshot(cubiculosCollection, (snapshot) => {
+  //   cubiculos.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  //   console.log (cubiculos.value)
+  // });
+  // };
+
+  // cargarCubiculos ();
+
+
 
 const crearReserva = async () =>
 {
@@ -95,13 +109,26 @@ const crearReserva = async () =>
         r_usuario : usuario,
         r_cubiculo : selected_cub.value,
         r_fecha : fecha.value,
-        r_hora_inicio : horaFin.value,
-        r_hora_fin : horaInicio.value,
+        r_hora_inicio : horaInicio.value,
+        r_hora_fin : horaFin.value,
         r_username : localStorage.getItem("username"),
         r_status : "open"
-
+        
         
       });
+
+      const cub_ref = doc(db,"cubiculo",selected_cub.value);
+   
+      await updateDoc(cub_ref,
+      {
+        cub_status : false
+      });
+
+      // await cub_ref.doc(selected_cub.value).update(
+      //   {
+      //     cub_status: false
+      //   }
+      // );
       alert("Reserva Creada con exito")
       console.log ("Reserva Creada ");
       router.push('/InterUsuario');

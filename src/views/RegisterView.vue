@@ -55,7 +55,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification,onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
@@ -69,7 +69,7 @@ const usu_correo = ref("");
 const usu_contraseña = ref("");
 const usu_id = ref("");
 const usu_rol = ref("estudiante");
-
+var usuario = "";
 const crearUser = async () => {
   if (
     usu_nombre.value &&
@@ -83,12 +83,30 @@ const crearUser = async () => {
       try {
         await createUserWithEmailAndPassword(auth, usu_correo.value, usu_contraseña.value);
         console.log("Usuario Creado");
+        await onAuthStateChanged(auth,  (user) => {
+  
+  
+            if (user) {
+
+              usuario= user.uid;
+              console.log(usuario);
+
+          } else {
+              console.log("No existe usuario loggeado");
+              router.push("/");
+            }
+          });
+
+
         await addDoc(collection(db, 'users'), {
           u_id: usu_id.value,
+          u_uid: usuario,
           u_nombre: usu_nombre.value,
           u_apellido: usu_apellido.value,
           u_correo: usu_correo.value,
-          u_rol: usu_rol.value
+          u_rol: usu_rol.value,
+          u_logros : 0,
+          u_sanciones : 0
         });
         console.log("Usuario guardado");
         await sendEmailVerification(auth.currentUser);
