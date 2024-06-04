@@ -4,43 +4,53 @@
       <div class="py-4">
         <button
           type="button"
-          class="btn btn-outline-primary"
+          class="btn btn-outline-warning"
           data-bs-toggle="modal"
           data-bs-target="#crearCubiculoModal"
-          data-bs-whatever="Crear cubículo"
-        >
+          data-bs-whatever="Crear cubículo">
           <i class="bi bi-plus-circle-dotted"></i>
           Crear Cubiculo
         </button>
       </div>
 
-      <div class="row">
-        <div v-for="cubiculo in cubiculos" :key="cubiculo.id" class="col-md-10 col-lg-4">
+      <!-- Filtro de cubículos -->
+      <!-- <div class="row">
+        <div class="col-md-3 mb-3">
+          <label for="filterStatus" class="form-label d-flex justify-content-start">Filtrar por estado:</label>
+          <select id="filterStatus" class="form-select" v-model="filterStatus">
+            <option value="all">Todos</option>
+            <option value="available">Disponible</option>
+            <option value="unavailable">Ocupado</option>
+          </select>
+        </div>
+      </div> -->
+
+      <!-- RENDER ALL CUBICLES -->
+      <div class="row" style="max-height: 550px; overflow-y: auto">
+        <div v-for="cubiculo in cubiculosFiltrados" :key="cubiculo.id" class="col-md-10 col-lg-4">
           <div class="card mb-4 shadow-sm">
             <article class="card-body">
-              <section class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title">{{ cubiculo.name }}</h5>
-                <Badge :status="cubiculo.status" />
+              <section class="d-flex flex-column justify-content-between align-items-start mb-2">
+                <h5 class="card-title">{{ cubiculo.cub_nombre }}</h5>
+                <div class="d-flex flex-row justify-content-between align-items-center mb-2 gap-2">
+                  <BadgeStatus :status="cubiculo.cub_status" />
+                  <BadgeCapacity :capacity="cubiculo.cub_capacidad" />
+                </div>
+                <p class="card-text mb-2">{{ cubiculo.cub_descripcion }}</p>
               </section>
-              <p class="card-text">{{ cubiculo.descripcion }}</p>
               <div class="d-flex justify-content-between align-items-center">
                 <div class="btn-group">
                   <button
                     type="button"
-                    class="btn btn-sm btn-outline-success"
+                    class="btn btn-sm btn-outline-primary"
                     data-bs-toggle="modal"
                     data-bs-target="#editarCubiculoModal"
                     data-bs-whatever="Editar cubículo"
-                    @click="editarCubiculo(cubiculo)"
-                  >
+                    @click="abrirModalEdicion(cubiculo)">
                     <i class="bi bi-pencil-square"></i>
                     Editar
                   </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    @click="eliminarCubiculo(cubiculo)"
-                  >
+                  <button type="button" class="btn btn-sm btn-outline-danger" @click="eliminarCubiculo(cubiculo)">
                     <i class="bi bi-trash-fill"></i>
                     Eliminar
                   </button>
@@ -52,103 +62,81 @@
       </div>
     </div>
 
-    <div
-      class="modal fade"
-      id="editarCubiculoModal"
-      tabindex="-1"
-      aria-labelledby="editarCubiculoModal"
-      aria-hidden="true"
-      modal-dialog
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="editarCubiculoModal">Editar Cubiculo</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div v-if="cubiculoToEdit">
-              <label for="name">Nombre</label>
-              <input
-                id="name"
-                class="form-control mt-1 mb-4"
-                v-model="cubiculoToEdit.name"
-                placeholder="Nombre del cubículo"
-              />
-              <label for="descripcion">Descripción</label>
-              <input
-                id="descripcion"
-                class="form-control mt-1 mb-4"
-                v-model="cubiculoToEdit.descripcion"
-                placeholder="Descripción del cubículo"
-              />
-              <button class="btn btn-success mt-2" @click="saveCubiculo" data-bs-dismiss="modal">
-                Guardar cambios
-              </button>
-              <button type="button" class="btn btn-secondary ms-2 mt-2" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <!-- MODAL PARA CREAR UN CUBICULO -->
     <div
       class="modal fade"
       id="crearCubiculoModal"
       tabindex="-1"
       aria-labelledby="crearCubiculoModal"
       aria-hidden="true"
-      modal-dialog
-    >
+      ref="crearCubiculoModal">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="crearCubiculoModal">Crear Cubiculo</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
-            <div>
-              <label for="name">Nombre</label>
-              <input class="form-control" v-model="name" placeholder="Nombre del cubículo" />
+          <div class="modal-body text-black">
+            <div class="d-flex flex-column justify-content-center align-items-start">
+              <label for="nombre">Nombre</label>
+              <input id="nombre" class="form-control" v-model="cub_nombre" placeholder="Nombre del cubículo" />
 
-              <label for="descripcion">Descripción</label>
+              <label for="descripcion" class="mt-4">Descripción</label>
+              <input id="descripcion" class="form-control" v-model="cub_descripcion" placeholder="Descripción del cubículo" />
+
+              <label for="capacidad" class="mt-4">Capacidad</label>
               <input
-                class="form-control mt-2"
-                v-model="descripcion"
-                placeholder="Descripción del cubículo"
-              />
-              <label for="horaInicio">Hora de Reserva</label>
-              <select class="form-select mt-2" id="horaInicio" v-model="reserva.horaInicio" required>
-                <option v-for="hora in horas" :key="hora" :value="hora">{{ hora }}</option>
-              </select>
-              <button
-                class="btn btn-primary mt-2"
-                data-bs-dismiss="modal"
-                @click="agregarCubiculo"
-                :disabled="!name || !descripcion"
-              >
-                Agregar cubículo
+                id="capacidad"
+                type="number"
+                class="form-control"
+                v-model="cub_capacidad"
+                placeholder="Capacidad del cubículo" />
+
+              <div class="w-100 mt-2 d-flex justify-content-center gap-2">
+                <button
+                  class="btn btn-primary mt-2"
+                  data-bs-dismiss="modal"
+                  @click="crearCubiculo"
+                  :disabled="!cub_nombre || !cub_capacidad">
+                  Agregar cubículo
+                </button>
+                <button type="button" class="btn btn-secondary ms-2 mt-2" data-bs-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA EDITAR CUBICULO -->
+  <div class="modal fade" id="editarCubiculoModal" tabindex="-1" aria-labelledby="editarCubiculoModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editarCubiculoModal">Editar Cubiculo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex flex-column justify-content-center align-items-start">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" class="form-control" v-model="cub_nombre" placeholder="Nombre del cubículo" />
+
+            <label for="descripcion" class="mt-4">Descripción</label>
+            <input id="descripcion" class="form-control" v-model="cub_descripcion" placeholder="Descripción del cubículo" />
+
+            <label for="capacidad" class="mt-4">Capacidad</label>
+            <input
+              id="capacidad"
+              type="number"
+              class="form-control"
+              v-model="cub_capacidad"
+              placeholder="Capacidad del cubículo" />
+            <div class="w-100 mt-2 d-flex justify-content-center gap-2">
+              <button class="btn btn-primary mt-2" data-bs-dismiss="modal" @click="guardarCambiosCubiculo">
+                Guardar cambios
               </button>
-              <button
-                type="button"
-                class="btn btn-secondary ms-2 mt-2"
-                data-bs-dismiss="modal"
-                @click="clearInputs"
-              >
-                Cancelar
-              </button>
+              <button type="button" class="btn btn-secondary ms-2 mt-2" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </div>
         </div>
@@ -158,160 +146,161 @@
 </template>
 
 <script>
-import Badge from '@/components/BadgeStatus.vue'
-import { reactive, toRefs } from 'vue'
+import BadgeStatus from "../../components/BadgeStatus.vue";
+import BadgeCapacity from "../../components/BadgeCapacity.vue";
 
 export default {
   components: {
-    Badge
+    BadgeStatus,
+    BadgeCapacity,
   },
-  setup() {
-    const state = reactive({
-      name: '',
-      descripcion: '',
-      cubiculos: [
-        {
-          id: 1,
-          name: 'Cubículo 1',
-          descripcion: 'Cubículo de 4x4 metros',
-          status: false,
-          usuario: 'Usuario 1'
-        },
-        {
-          id: 2,
-          name: 'Cubículo 2',
-          descripcion: 'Cubículo de 5x5 metros',
-          status: true,
-          usuario: null
-        }
-      ],
-      cubiculoToEdit: null,
-      editDialogOpen: false,
-      reserva: {
-        nombreEstudiante: '',
-        nuaEstudiante: '',
-        horaInicio: '',
-        horaFin: ''
-      },
-      horas: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00']
-    })
+};
+</script>
 
-    const agregarCubiculo = () => {
-      if (!state.name || !state.descripcion) {
-        return
-      }
-      const newCubiculo = {
-        id: state.cubiculos.length + 1,
-        name: state.name,
-        descripcion: state.descripcion,
-        status: true,
-        usuario: 'Usuario 1'
-      }
-      state.cubiculos.push(newCubiculo)
-      state.name = ''
-      state.descripcion = ''
-    }
+<script setup>
+import { ref, onMounted, computed } from "vue";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+// import { collection, addDoc, onSnapshot, doc, updateDoc,  } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
-    const editarCubiculo = (cubiculo) => {
-      state.cubiculoToEdit = { ...cubiculo }
-      state.editDialogOpen = true
-    }
+const cubiculos = ref([]);
+const cub_nombre = ref("");
+const filterStatus = ref("all");
+const cub_capacidad = ref("");
+const cub_descripcion = ref("");
+const cubiculoId = ref("");
 
-    const saveCubiculo = () => {
-      const index = state.cubiculos.findIndex((c) => c.id === state.cubiculoToEdit.id)
-      if (index !== -1) {
-        state.cubiculos[index] = state.cubiculoToEdit
-        state.cubiculoToEdit = null
-        state.editDialogOpen = false
-      }
-    }
+const crearCubiculoModal = ref(null);
 
-    const eliminarCubiculo = (cubiculo) => {
-      state.cubiculos = state.cubiculos.filter((c) => c.id !== cubiculo.id)
-    }
+const cargarCubiculos = () => {
+  const cubiculosCollection = collection(db, "cubiculo");
+  onSnapshot(cubiculosCollection, (snapshot) => {
+    cubiculos.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    console.log (cubiculos.value)
+  });
+};
 
-    const clearInputs = () => {
-      state.name = ''
-      state.descripcion = ''
-    }
-
-    return {
-      ...toRefs(state),
-      agregarCubiculo,
-      editarCubiculo,
-      saveCubiculo,
-      eliminarCubiculo,
-      clearInputs
-    }
+const cubiculosFiltrados = computed(() => {
+  if (filterStatus.value === "all") {
+    return cubiculos.value;
+  } else if (filterStatus.value === "available") {
+    return cubiculos.value.filter((cubiculo) => cubiculo.cub_status === true);
+  } else if (filterStatus.value === "unavailable") {
+    return cubiculos.value.filter((cubiculo) => cubiculo.cub_status === false);
   }
-}
+  return cubiculos.value;
+});
+
+const abrirModalEdicion = (cubiculo) => {
+  cub_nombre.value = cubiculo.nombre;
+  cub_descripcion.value = cubiculo.descripcion;
+  cub_capacidad.value = cubiculo.capacidad;
+  cubiculoId.value = cubiculo.id;
+};
+
+const guardarCambiosCubiculo = async () => {
+  if (!cubiculoId.value) {
+    console.error("No se ha seleccionado un cubículo para editar");
+    return;
+  }
+
+  const cubiculoDoc = doc(db, "cubiculo", cubiculoId.value);
+  await updateDoc(cubiculoDoc, {
+    cub_nombre: cub_nombre.value,
+    cub_descripcion: cub_descripcion.value,
+    cub_capacidad: cub_capacidad.value,
+  });
+};
+
+const crearCubiculo = async () => {
+  if (cub_nombre.value && cub_capacidad.value && cub_capacidad.value > 0 && cub_descripcion.value) {
+    try {
+      await addDoc(collection(db, "cubiculo"), {
+        cub_nombre: cub_nombre.value,
+        cub_capacidad: cub_capacidad.value,
+        cub_descripcion: cub_descripcion.value,
+        // fecha_inicio: null,
+        // fecha_fin: null,
+        cub_status: true,
+        // user: null,
+      });
+      cub_nombre.value = "";
+      cub_descripcion.value = "";
+      cub_capacidad.value = "";
+    } catch (error) {
+      console.log(error);
+      alert(error.message);
+    }
+  } else {
+    alert("Complete todos los campos para continuar");
+  }
+};
+
+const eliminarCubiculo = async (cubiculo) => {
+  if (confirm(`¿Estás seguro de eliminar el cubículo ${cubiculo.nombre}?`)) {
+    const cubiculoDoc = doc(db, "cubiculo", cubiculo.id);
+    await deleteDoc(cubiculoDoc);
+  }
+};
+
+onMounted(() => {
+  cargarCubiculos();
+
+  const modalElement = crearCubiculoModal.value;
+  if (modalElement) {
+    modalElement.addEventListener("shown.bs.modal", () => {
+      cub_nombre.value = "";
+      cub_descripcion.value = "";
+      cub_capacidad.value = "";
+    });
+  }
+});
 </script>
 
 <style scoped>
 .container {
   padding: 20px;
-  background: #002F6C; /* Azul oscuro de la Universidad de Guanajuato */
+  background: #002f6c;
   border-radius: 15px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   max-width: 800px;
   margin: 20px auto;
-  color: #FFFFFF; /* Texto blanco para contraste */
+  color: #ffffff;
 }
 
 .btn-outline-primary {
-  color: #007BFF; /* Azul principal */
-  border-color: #007BFF; /* Azul principal */
+  color: #002f6c;
+  border-color: #002f6c;
 }
 
 .btn-outline-primary:hover {
-  color: #FFFFFF; /* Texto blanco */
-  background-color: #007BFF; /* Azul principal */
-  border-color: #007BFF; /* Azul principal */
+  color: #ffffff;
+  background-color: #002f6c;
+  border-color: #002f6c;
 }
 
 .card {
-  background-color: #FFFFFF; /* Fondo blanco para las tarjetas */
-  border: 1px solid #CED4DA; /* Borde gris */
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
   border-radius: 8px;
 }
 
 .card-title {
   font-size: 18px;
   font-weight: bold;
-  color: #343A40; /* Texto oscuro */
+  color: #002f6c;
 }
 
 .card-text {
-  color: #6C757D; /* Texto gris */
-}
-
-.btn-outline-success {
-  color: #28A745; /* Verde */
-  border-color: #28A745; /* Verde */
-}
-
-.btn-outline-success:hover {
-  color: #FFFFFF; /* Texto blanco */
-  background-color: #28A745; /* Verde */
-  border-color: #28A745; /* Verde */
+  color: #6c757d;
 }
 
 .modal-content {
-  background-color: #FFFFFF; /* Fondo blanco */
+  background-color: #ffffff;
   border-radius: 8px;
 }
 
 .modal-title {
-  color: #343A40; /* Texto oscuro */
-}
-
-.btn-primary {
-  background-color: #007BFF; /* Azul principal */
-  border-color: #007BFF; /* Azul principal */
-}
-
-.btn-primary:hover {
-  background-color: #0056B3; /* Azul más oscuro */
-  border-color: #0056B3; /* Azul más oscuro */
+  color: #002f6c;
 }
 </style>

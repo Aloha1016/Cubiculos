@@ -2,17 +2,8 @@
     <div class="container py-2">
       <h2>Gestión de Cubículos y Reservas</h2>
   
-      <!-- Filtro de cubículos -->
-      <div class="row">
-        <div class="col-md-3 mb-3">
-          <label for="statusFilter" class="form-label">Filtrar por estado:</label>
-          <select class="form-select" v-model="statusFilter">
-            <option value="all">Todos</option>
-            <option value="available">Disponible</option>
-            <option value="unavailable">Ocupado</option>
-          </select>
-        </div>
-      </div>
+      Filtro de cubículos
+   
   
       <div class="row" style="max-height: 550px; overflow-y: auto">
         <div v-for="cubiculo in cubiculosFiltrados" :key="cubiculo.id" class="col-md-10 col-lg-4">
