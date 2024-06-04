@@ -13,6 +13,7 @@ import AdminReservasView from "../views/admin/AdminReservasView.vue";
 import AdminAvisosView from "../views/admin/AdminAvisosView.vue";
 import AchievementsView from "../views/admin/AchievementsView.vue";
 import SanctionsView from "../views/admin/SanctionsView.vue";
+import Cubiculos from "../views/admin/CubiculosView.vue"
 import ChangePasswordView from "../views/ChangePasswordView.vue";
 import ReservarCubiculosUserView from "../views/ReservarCubiculosUserView.vue";
 import FinalizarReservas from "../views/admin/FinalizarReservasView.vue";
@@ -36,7 +37,7 @@ const routes = [
       {
         path: "cubiculos",
         name: "Cubiculos",
-        component: AdminCubiculosView,
+        component: Cubiculos,
       },
       {
         path: "reservas",

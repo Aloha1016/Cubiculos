@@ -2,7 +2,7 @@
   <div class="container py-2">
     <div class="row">
       <div class="py-4">
-        <button
+        <!-- <button
           type="button"
           class="btn btn-outline-warning"
           data-bs-toggle="modal"
@@ -10,11 +10,11 @@
           data-bs-whatever="Crear cubículo">
           <i class="bi bi-plus-circle-dotted"></i>
           Crear Cubiculo
-        </button>
+        </button> -->
       </div>
 
       <!-- Filtro de cubículos -->
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-md-3 mb-3">
           <label for="filterStatus" class="form-label d-flex justify-content-start">Filtrar por estado:</label>
           <select id="filterStatus" class="form-select" v-model="filterStatus">
@@ -23,7 +23,7 @@
             <option value="unavailable">Ocupado</option>
           </select>
         </div>
-      </div>
+      </div> -->
 
       <!-- RENDER ALL CUBICLES -->
       <div class="row" style="max-height: 550px; overflow-y: auto">
@@ -40,7 +40,7 @@
               </section>
               <div class="d-flex justify-content-between align-items-center">
                 <div class="btn-group">
-                  <button
+                  <!-- <button
                     type="button"
                     class="btn btn-sm btn-outline-primary"
                     data-bs-toggle="modal"
@@ -53,7 +53,7 @@
                   <button type="button" class="btn btn-sm btn-outline-danger" @click="eliminarCubiculo(cubiculo)">
                     <i class="bi bi-trash-fill"></i>
                     Eliminar
-                  </button>
+                  </button> -->
                 </div>
               </div>
             </article>
@@ -159,7 +159,8 @@ export default {
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+// import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+ import { collection, addDoc, onSnapshot, doc, updateDoc,  } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
 const cubiculos = ref([]);
@@ -190,12 +191,12 @@ const cubiculosFiltrados = computed(() => {
   return cubiculos.value;
 });
 
-const abrirModalEdicion = (cubiculo) => {
-  cub_nombre.value = cubiculo.nombre;
-  cub_descripcion.value = cubiculo.descripcion;
-  cub_capacidad.value = cubiculo.capacidad;
-  cubiculoId.value = cubiculo.id;
-};
+// const abrirModalEdicion = (cubiculo) => {
+//   cub_nombre.value = cubiculo.nombre;
+//   cub_descripcion.value = cubiculo.descripcion;
+//   cub_capacidad.value = cubiculo.capacidad;
+//   cubiculoId.value = cubiculo.id;
+// };
 
 const guardarCambiosCubiculo = async () => {
   if (!cubiculoId.value) {
@@ -235,12 +236,12 @@ const crearCubiculo = async () => {
   }
 };
 
-const eliminarCubiculo = async (cubiculo) => {
-  if (confirm(`¿Estás seguro de eliminar el cubículo ${cubiculo.nombre}?`)) {
-    const cubiculoDoc = doc(db, "cubiculo", cubiculo.id);
-    await deleteDoc(cubiculoDoc);
-  }
-};
+// const eliminarCubiculo = async (cubiculo) => {
+//   if (confirm(`¿Estás seguro de eliminar el cubículo ${cubiculo.nombre}?`)) {
+//     const cubiculoDoc = doc(db, "cubiculo", cubiculo.id);
+//     await deleteDoc(cubiculoDoc);
+//   }
+// };
 
 onMounted(() => {
   cargarCubiculos();

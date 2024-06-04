@@ -57,7 +57,7 @@ const links = [
   { to: "/admin", text: "Inicio", icon: "bi bi-house" },
   { to: "/admin/cubiculos", text: "Cubículos", icon: "bi bi-box" },
   { to: "/admin/reservas", text: "Reservas", icon: "bi bi-calendar" },
-  { to: "/admin/avisos", text: "Avisos", icon: "bi bi-bookmark" },
+  // { to: "/admin/avisos", text: "Avisos", icon: "bi bi-bookmark" },
   { to: "/admin/achievements", text: "Logros", icon: "bi bi-trophy" },
   { to: "/admin/sanctions", text: "Sanciones", icon: "bi bi-exclamation-circle" }
 ];

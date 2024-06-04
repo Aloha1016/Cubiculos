@@ -11,8 +11,8 @@
       </div>
       <ul v-show="showMenu" class="profile-menu active">
         <li>{{ username }}</li>
-        <li><router-link to="/Historial">Panel de avisos</router-link></li>
-        <li><router-link to="/Ajustes">Ajustes</router-link></li>
+        <!-- <li><router-link to="/Historial">Panel de avisos</router-link></li>
+        <li><router-link to="/Ajustes">Ajustes</router-link></li> -->
         <li><button class="btn" @click="logout">Cerrar sesión</button></li>
       </ul>
     </header>
