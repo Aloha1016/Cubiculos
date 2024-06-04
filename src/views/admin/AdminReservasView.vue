@@ -158,9 +158,12 @@
       </div>
     </div>
     <!-- Lado Derecho -->
-    <div class="col-md-12 col-xl-6">
+    <!-- 
+
+
+<div class="col-md-12 col-xl-6">
       <div class="container p-6">
-        <!-- TITULO SECCION -->
+  
         <h4 class="mb-4">Registro Reservas</h4>
         <div class="container p-4" style="background-color: #f8f9fa">
           <table class="table">
@@ -186,6 +189,10 @@
         </div>
       </div>
     </div>
+
+     -->
+    
+    
   </div>
 </template>
 
@@ -218,30 +225,32 @@ export default {
     });
 
     const usuariosCollection = collection(db, "users");
-    const cubiculosCollection = collection(db, "cubiculos");
+    // const cubiculosCollection = collection(db, "cubiculos");
     const reservasCollection = collection(db, "reserva");
-    const reservasActivasQuery = query(reservasCollection, where("r_status", "==", "open"));
+    const reservasActivasQuery = query(reservasCollection, where("r_status", "!=", "closed"));
 
-    const getUser = (userId) => {
-      const user = state.usuarios.find((u) => u.id === userId);
-      return user ? `${user.u_nombre} ${user.u_apellido}` : "Desconocido";
-    };
+    // const getUser = (userId) => {
+    //   const user = state.usuarios.find((u) => u.id === userId);
+    //   return user ? `${user.u_nombre} ${user.u_apellido}` : "Desconocido";
+    // };
 
-    const getCubiculoName = (cubiculoId) => {
-      const cubiculo = state.cubiculos.find((c) => c.id === cubiculoId);
-      return cubiculo ? cubiculo.nombre : "Desconocido";
-    };
+    // const getCubiculoName = (cubiculoId) => {
+    //   const cubiculo = state.cubiculos.find((c) => c.id === cubiculoId);
+    //   return cubiculo ? cubiculo.nombre : "Desconocido";
+    // };
 
-    const cargarCubiculos = () => {
-      onSnapshot(cubiculosCollection, (snapshot) => {
-        state.cubiculos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      });
-    };
+    // const cargarCubiculos = () => {
+    //   onSnapshot(cubiculosCollection, (snapshot) => {
+    //     state.cubiculos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    //   });
+    // };
 
     const cargarReservasActivas = async () => {
       const querySnapshot = await getDocs(reservasActivasQuery);
       state.reservasActivas = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     };
+
+    
 
     const cargarUsuarios = () => {
       onSnapshot(usuariosCollection, (snapshot) => {
@@ -250,7 +259,7 @@ export default {
     };
 
     const cargarLogros = () => {
-      const logrosCollection = collection(db, "logros");
+      const logrosCollection = collection(db, "logro");
       onSnapshot(logrosCollection, (snapshot) => {
         state.logros = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       });
@@ -330,24 +339,94 @@ export default {
 
     const checkOut = async (reserva) => {
       try {
-        const reservaDoc = doc(db, "reserva", reserva.id);
-        await updateDoc(reservaDoc, {
-          r_status: "closed",
-        });
+      
+
+
 
         if (state.selectedAchievement) {
-          const logroDoc = doc(db, "logros", state.selectedAchievement);
-          await updateDoc(logroDoc, {
-            r_reserva: reserva.id,
-          });
+           
+
+            await addDoc(collection(db, 'logro_usuario'), {
+                ulo_userid: reserva.r_usuario,
+                ulo_logro : state.selectedAchievement,
+                ulo_status : true
+                
+              });
+
+            
+            const userCollection = collection(db, "users");
+            const userQuery= query (userCollection, where ("u_uid" , "==",reserva.r_usuario) )
+            console.log(reserva.r_usuario);
+            const querySnapshot = await getDocs(userQuery)
+            querySnapshot.forEach((document)=>
+            {
+              console.log(document.data().u_logros)
+             
+               const userDoc = doc(db,"users",document.id);
+                  updateDoc(userDoc, {
+                      u_logros : document.data().u_logros +1
+                 }) 
+              
+            });
+
+              const reservaDoc = doc(db, "reserva", reserva.id);
+             await updateDoc(reservaDoc, {
+             r_status: "closed",
+             });
+            
+             const cub_ref = doc(db,"cubiculo",reserva.r_cubiculo);
+   
+              await updateDoc(cub_ref,
+              {
+                cub_status : true
+              });
+
+
+
+          // const logroDoc = doc(db, "logros", state.selectedAchievement);
+          // await updateDoc(logroDoc, {
+          //   r_reserva: reserva.id,
+          // });
         }
 
         if (state.selectedSanction) {
-          const sancionDoc = doc(db, "sancion", state.selectedSanction);
-          await updateDoc(sancionDoc, {
-            r_reserva: reserva.id,
-          });
-        }
+              await addDoc(collection(db, 'sancion_usuario'), {
+                    usan_userid: reserva.r_usuario,
+                    usan_sancion: state.selectedSanction,
+                    usan_status : true
+                    
+                  });
+
+                
+                const userCollection = collection(db, "users");
+                const userQuery= query (userCollection, where ("u_uid" , "==",reserva.r_usuario) )
+                console.log(reserva.r_usuario);
+                const querySnapshot = await getDocs(userQuery)
+                querySnapshot.forEach((document)=>
+                {
+                  console.log(document.data().u_sanciones)
+                
+                  const userDoc = doc(db,"users",document.id);
+                      updateDoc(userDoc, {
+                          u_sanciones : document.data().u_sanciones +1
+                    }) 
+                  
+                });
+
+                  
+
+                const reservaDoc = doc(db, "reserva", reserva.id);
+                await updateDoc(reservaDoc, {
+                r_status: "closed",
+                });
+
+                const cub_ref = doc(db,"cubiculo",reserva.r_cubiculo);     
+                await updateDoc(cub_ref,
+                {
+                  cub_status : true
+                });
+                
+         }
 
         alert("Check-Out realizado con éxito");
         await cargarReservasActivas();
@@ -371,7 +450,7 @@ export default {
     });
 
     onMounted(() => {
-      cargarCubiculos();
+      // cargarCubiculos();
       cargarUsuarios();
       cargarReservas();
       cargarReservasActivas();
@@ -381,8 +460,8 @@ export default {
 
     return {
       ...toRefs(state),
-      getCubiculoName,
-      getUser,
+      // getCubiculoName,
+      // getUser,
       abrirModalReserva,
       reservarCubiculo,
       filteredCubiculos,
