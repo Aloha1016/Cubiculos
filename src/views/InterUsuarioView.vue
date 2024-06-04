@@ -75,7 +75,7 @@
             <div v-if="banedUSer">
               <div class="card mb-4">
                     <div class="card-body">
-                      <h3>Haz sido suspendido por 1 mes, debido a que haz acumulado más de 3 sanciones</h3>
+                      <h3>Haz sido suspendido, debido a que haz acumulado más de 5 sanciones</h3>
                     </div>
               </div>
             </div>
@@ -113,7 +113,7 @@
 
 <script>
 import { reactive, toRefs, computed, onMounted } from "vue";
-import { collection, getDocs,where,query, getDoc,doc } from "firebase/firestore";
+import { collection, getDocs,where,query, getDoc,doc,updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { getAuth,onAuthStateChanged } from "firebase/auth";
 import { ref } from "vue";
@@ -202,11 +202,23 @@ export default {
       const user = collection (db,"users");
       const user_info = query (user,where ("u_uid", "==", usuario));
       const querySnapshot = await getDocs (user_info);
-      querySnapshot.forEach((doc)=> 
+      querySnapshot.forEach((document)=> 
       {
-          if(doc.data().u_sanciones >= 3)
+          if(document.data().u_sanciones >= 5)
           {
            state.banedUSer = !state.banedUSer 
+          }
+
+          if (document.data().u_logros >=3)
+          {
+            const userDoc = doc(db,"users",document.id);
+                      updateDoc(userDoc, {
+                          u_sanciones : document.data().u_sanciones -1
+                    }) ;
+            const userDoc1 = doc(db,"users",document.id);
+              updateDoc(userDoc1, {
+                u_logros : document.data().u_logros -3
+            }) ;       
           }
 
           //if (doc.data().user)
