@@ -209,6 +209,7 @@ export default {
            state.banedUSer = !state.banedUSer 
           }
 
+          
           if (document.data().u_logros >=3)
           {
             const userDoc = doc(db,"users",document.id);
