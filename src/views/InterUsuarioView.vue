@@ -85,18 +85,19 @@
           <div class="fibonacci-item fibonacci2">
             <p>SANCIONES</p>
             
-            <div class="card mb-4" v-for="sancion in sanciones" :key="sancion.id">
-                    <div class="card-body">
-                      <h3><b>{{ sancion.s_nombre }}</b></h3>
+            <div class="card mb-4" v-for="sancion in sanciones" :key="sancion.id" >
+                    <div class="card-body" >
+                      <h5>{{ sancion.s_nombre }}</h5>
                       <p>{{ sancion.s_descripcion }}</p>
                     </div>
               </div>
           </div>
           <div class="fibonacci-item fibonacci4">
             <p>LOGROS</p>
-            <div class="card mb-4">
+            <div class="card mb-4" v-for="logro in logros" :key="logro.id">
                     <div class="card-body">
-                      <h3></h3>
+                      <h5>{{ logro.l_nombre}}</h5>
+                      <p>{{ logro.l_descripcion }}</p>
                     </div>
               </div>
           </div>
@@ -127,9 +128,9 @@ export default {
     return {
       showMenu: false,
       
-      sanciones: [],
+     
       
-      logros: [],
+ 
       username: localStorage.getItem('username') || 'Usuario'
     };
   },
@@ -141,6 +142,7 @@ export default {
       banedUSer : false,
       reserva : [],
       sanciones : [],
+      logros :[],
       reserva_date : "",
       reserva_horain :"",
       reserva_horaout : "",
@@ -169,7 +171,7 @@ export default {
             fetchReserva();
             banUser();
             getSanciones ();
-          //  getLogros();
+            getLogros();
         } else {
             console.log("No existe usuario loggeado");
             // router.push("/");
@@ -190,7 +192,7 @@ export default {
       const querySnapshot = await getDocs(activeCub);
       querySnapshot.forEach((doc) => {
         state.cubiculos.push({ id: doc.id, ...doc.data() });
-     ///   console.log(state.cubiculos);
+       console.log(state.cubiculos);
       });
     }
 
@@ -244,18 +246,26 @@ export default {
     {
       const sancionesUserCollection  = collection(db,"sancion_usuario");
       const sancionesUSer = query(sancionesUserCollection,where("usan_userid","==",usuario))
+
+
+
+
       const querySnapshot = await getDocs (sancionesUSer);
 
       querySnapshot.forEach((document)=>
       {
-        console.log(document.data().usan_sancion);
+        console.log("Sancion",document.data().usan_sancion);
          // const sancionesCollection = collection (db,"sancion");
           //const sancionesget = query (sancionesCollectio,where(""))
           getDoc(doc(db, "sancion", document.data().usan_sancion)).then(docSnap => {
             if (docSnap.exists()) {
-              console.log("Document data:", docSnap.data());
-              state.sanciones.push({ id: docSnap.id, ...docSnap.data() });
+             // console.log("Document data:", docSnap.data());
+              state.sanciones.push({ id: docSnap.id,s_nombre : docSnap.data().s_nombre, s_descripcion : docSnap.data().s_descripcion });
+              //
+         
+
               console.log(state.sanciones);
+              console.log(state.sanciones.map(sancion => sancion.s_descripcion));
               
             } else {
               console.log("No such document!");
@@ -266,6 +276,38 @@ export default {
 
     }
 
+    async  function getLogros ()
+    {
+      const logrosUserCollection  = collection(db,"logro_usuario");
+      const logrosUserQuery = query(logrosUserCollection,where("ulo_userid","==",usuario))
+
+
+
+
+      const querySnapshot = await getDocs (logrosUserQuery);
+
+      querySnapshot.forEach((document)=>
+      {
+        console.log("Logro",document.data().ulo_logro);
+         // const sancionesCollection = collection (db,"sancion");
+          //const sancionesget = query (sancionesCollectio,where(""))
+          getDoc(doc(db, "logro", document.data().ulo_logro)).then(docSnap => {
+            if (docSnap.exists()) {
+             // console.log("Document data:", docSnap.data());
+              state.logros.push({ id: docSnap.id,l_nombre : docSnap.data().l_nombre, l_descripcion : docSnap.data().l_descripcion });
+              //
+         
+
+              console.log(state.logros);
+              console.log(state.sanciones.map(sancion => sancion.s_descripcion));
+              
+            } else {
+              console.log("No such document!");
+            }
+          })
+          
+      });
+    }
 
     function nextPage() {
       if (state.currentPage < totalPages.value) {
